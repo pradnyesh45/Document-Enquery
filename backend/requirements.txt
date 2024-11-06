@@ -1,0 +1,16 @@
+fastapi
+python-multipart
+sqlalchemy
+uvicorn
+pydantic
+unstructured[pdf]==0.10.30
+pillow-heif
+pdfminer.six
+python-jose[cryptography]  # for JWT tokens
+passlib[bcrypt]  # for password hashing
+alembic  # for database migrations
+psycopg2-binary  # for PostgreSQL support
+pdf2image
+pi-heif==0.7.0
+python-pptx  # for PowerPoint file support
+langchain-community  # for embeddings and other community components
