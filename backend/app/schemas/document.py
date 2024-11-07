@@ -1,24 +1,19 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from datetime import datetime
 from uuid import UUID
 from typing import Optional
 
 class DocumentBase(BaseModel):
-    title: str
+    title: str = Field(..., description="Title of the document")
 
 class DocumentCreate(DocumentBase):
     pass
 
 class DocumentResponse(DocumentBase):
-    id: UUID
-    user_id: UUID
-    file_path: str
-    file_type: str
-    file_size: int
-    status: str
-    error_message: Optional[str]
-    created_at: datetime
-    updated_at: Optional[datetime]
+    id: UUID = Field(..., description="Unique identifier")
+    created_at: datetime = Field(..., description="When the document was created")
+    status: str = Field(..., description="Processing status")
+    file_url: Optional[str] = Field(None, description="URL to access the file")
 
     class Config:
-        from_attributes = True 
+        from_attributes = True
