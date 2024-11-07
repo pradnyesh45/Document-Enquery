@@ -1,14 +1,25 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import "./QueryForm.css";
 
 function QueryForm() {
   const [documentId, setDocumentId] = useState("");
   const [question, setQuestion] = useState("");
-  const [answer, setAnswer] = useState("");
   const [loading, setLoading] = useState(false);
   const [documents, setDocuments] = useState([]);
+  const [messages, setMessages] = useState([]);
   const navigate = useNavigate();
+
+  const messagesEndRef = useRef(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   useEffect(() => {
     const fetchDocuments = async () => {
@@ -35,6 +46,10 @@ function QueryForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!documentId) {
+      alert("Please select a document first");
+      return;
+    }
     setLoading(true);
     try {
       const token = localStorage.getItem("token");
@@ -42,7 +57,7 @@ function QueryForm() {
         "http://localhost:8000/api/v1/documents/query",
         {
           document_id: documentId,
-          question: question,
+          question: question.trim(),
         },
         {
           headers: {
@@ -50,9 +65,20 @@ function QueryForm() {
           },
         }
       );
-      setAnswer(response.data.answer);
+      setMessages([
+        ...messages,
+        { type: "question", content: question },
+        { type: "answer", content: response.data.answer },
+      ]);
+      setQuestion("");
     } catch (error) {
-      setAnswer("Error querying document");
+      const errorMessage =
+        error.response?.data?.detail || "Error querying document";
+      setMessages([
+        ...messages,
+        { type: "question", content: question },
+        { type: "answer", content: errorMessage },
+      ]);
     } finally {
       setLoading(false);
     }
@@ -68,55 +94,77 @@ function QueryForm() {
   };
 
   return (
-    <div>
-      <h1>Query Document</h1>
-      <div>
-        <h2>Documents</h2>
-        <ul>
-          {documents.length > 0 ? (
-            documents.map((doc) => (
-              <li key={doc.id}>
-                <button onClick={() => setDocumentId(doc.id)}>
-                  {doc.title}
-                </button>
-              </li>
-            ))
-          ) : (
-            <li>No documents available</li>
-          )}
-        </ul>
+    <div className="chat-container">
+      <h1>Chat with Document</h1>
+
+      <div className="document-selector">
+        <h2>Select Document</h2>
+        <select
+          value={documentId}
+          onChange={(e) => setDocumentId(e.target.value)}
+          required
+          aria-label="Select a document"
+        >
+          <option value="">Select a document...</option>
+          {documents.map((doc) => (
+            <option key={doc.id} value={doc.id}>
+              {doc.title}
+            </option>
+          ))}
+        </select>
       </div>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>Document ID:</label>
-          <input
-            type="text"
-            value={documentId}
-            onChange={(e) => setDocumentId(e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <label>Question:</label>
-          <input
-            type="text"
-            value={question}
-            onChange={(e) => setQuestion(e.target.value)}
-            required
-          />
-        </div>
-        <button type="submit" disabled={loading}>
-          {loading ? "Loading..." : "Submit"}
+
+      <div className="chat-messages" role="log" aria-live="polite">
+        {messages.map((message, index) => (
+          <div
+            key={index}
+            className={`message ${message.type}`}
+            role={message.type === "question" ? "note" : "status"}
+          >
+            <strong>{message.type === "question" ? "You: " : "AI: "}</strong>
+            {message.content}
+          </div>
+        ))}
+        <div ref={messagesEndRef} />
+      </div>
+
+      <form onSubmit={handleSubmit} className="chat-input-form">
+        <input
+          type="text"
+          value={question}
+          onChange={(e) => setQuestion(e.target.value)}
+          placeholder="Type your question..."
+          required
+          aria-label="Your question"
+          disabled={loading}
+        />
+        <button
+          type="submit"
+          disabled={loading || !documentId || !question.trim()}
+          aria-label={loading ? "Sending question" : "Send question"}
+        >
+          {loading ? (
+            <>
+              <span className="loading-spinner" aria-hidden="true" />
+              Sending...
+            </>
+          ) : (
+            "Send"
+          )}
         </button>
       </form>
-      {answer && (
-        <div>
-          <h2>Answer:</h2>
-          <p>{answer}</p>
-        </div>
-      )}
-      <button onClick={handleBackToSelection}>Back to Selection</button>
-      <button onClick={handleLogout}>Logout</button>
+
+      <div className="navigation-buttons">
+        <button
+          onClick={handleBackToSelection}
+          aria-label="Back to document selection"
+        >
+          Back
+        </button>
+        <button onClick={handleLogout} aria-label="Logout from application">
+          Logout
+        </button>
+      </div>
     </div>
   );
 }

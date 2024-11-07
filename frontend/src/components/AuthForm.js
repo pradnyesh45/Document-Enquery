@@ -1,81 +1,107 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import "../styles/common.css";
 
 function AuthForm({ type }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     try {
-      const endpoint =
-        type === "signup" ? "/api/v1/users/" : "/api/v1/users/login";
+      if (type === "signup") {
+        await axios.post("http://localhost:8000/api/v1/users/", {
+          email: username,
+          password: password,
+        });
+        setMessage({
+          type: "success",
+          text: "Signup successful! Please login.",
+        });
+        setTimeout(() => navigate("/login"), 2000);
+      } else {
+        const params = new URLSearchParams({
+          grant_type: "password",
+          username,
+          password,
+          scope: "",
+          client_id: "string",
+          client_secret: "string",
+        });
 
-      const params = new URLSearchParams();
-      params.append("grant_type", "password");
-      params.append("username", username);
-      params.append("password", password);
-      params.append("scope", "");
-      params.append("client_id", "string");
-      params.append("client_secret", "string");
+        const response = await axios.post(
+          "http://localhost:8000/api/v1/users/login",
+          params
+        );
 
-      const response = await axios.post(
-        `http://localhost:8000${endpoint}`,
-        params,
-        {
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-            Accept: "application/json",
-          },
-        }
-      );
-
-      setMessage(response.data.msg || "Login successful");
-      if (type === "login") {
         localStorage.setItem("token", response.data.access_token);
+        setMessage({ type: "success", text: "Login successful!" });
         navigate("/select");
       }
     } catch (error) {
-      setMessage(
-        "Error: " +
-          (error.response ? error.response.data.detail : error.message)
-      );
+      setMessage({
+        type: "error",
+        text: error.response?.data?.detail || "An error occurred",
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleBackToHome = () => {
-    navigate("/");
-  };
-
   return (
-    <div>
-      <h1>{type === "signup" ? "Signup" : "Login"}</h1>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>Username:</label>
-          <input
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <label>Password:</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
-        <button type="submit">{type === "signup" ? "Signup" : "Login"}</button>
-      </form>
-      {message && <p>{message}</p>}
-      <button onClick={handleBackToHome}>Back to Home</button>
+    <div className="page-container">
+      <div className="card">
+        <h1 className="page-title">
+          {type === "signup" ? "Create Account" : "Sign In"}
+        </h1>
+        {message && (
+          <div className={`message ${message.type}`}>{message.text}</div>
+        )}
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label className="form-label">Email</label>
+            <input
+              className="form-input"
+              type="email"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
+              disabled={loading}
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Password</label>
+            <input
+              className="form-input"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              disabled={loading}
+            />
+          </div>
+          <button className="btn" type="submit" disabled={loading}>
+            {loading
+              ? "Please wait..."
+              : type === "signup"
+              ? "Create Account"
+              : "Sign In"}
+          </button>
+          <button
+            className="btn btn-outline"
+            type="button"
+            onClick={() => navigate("/")}
+            disabled={loading}
+          >
+            Back to Home
+          </button>
+        </form>
+      </div>
     </div>
   );
 }
