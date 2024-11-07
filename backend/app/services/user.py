@@ -1,24 +1,26 @@
-from sqlalchemy.orm import Session
 from app.models.user import User
 from app.schemas.user import UserCreate
 from app.core.security import get_password_hash
+from app.db import SessionLocal
 
 class UserService:
-    def __init__(self, db: Session):
-        self.db = db
-
     async def create_user(self, user: UserCreate) -> User:
-        # Check if user exists
-        db_user = self.db.query(User).filter(User.email == user.email).first()
-        if db_user:
-            raise ValueError("Email already registered")
-            
-        # Create new user
-        db_user = User(
-            email=user.email,
-            password_hash=get_password_hash(user.password)
-        )
-        self.db.add(db_user)
-        self.db.commit()
-        self.db.refresh(db_user)
-        return db_user 
+        db = SessionLocal()
+        try:
+            db_user = User(
+                email=user.email,
+                hashed_password=get_password_hash(user.password)
+            )
+            db.add(db_user)
+            db.commit()
+            db.refresh(db_user)
+            return db_user
+        finally:
+            db.close()
+
+    async def get_user_by_email(self, email: str) -> User | None:
+        db = SessionLocal()
+        try:
+            return db.query(User).filter(User.email == email).first()
+        finally:
+            db.close() 

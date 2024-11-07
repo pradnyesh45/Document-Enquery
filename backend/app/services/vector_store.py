@@ -2,7 +2,7 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session
 from app.core.config import get_settings
 from app.models.document import DocumentChunk
-from langchain.embeddings import OpenAIEmbeddings
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
 import numpy as np
 from typing import List, Dict, Optional
 import logging
@@ -13,8 +13,9 @@ logger = logging.getLogger(__name__)
 class VectorStore:
     def __init__(self, db: Session):
         self.db = db
-        self.embeddings = OpenAIEmbeddings(
-            openai_api_key=get_settings().OPENAI_API_KEY
+        self.embeddings = GoogleGenerativeAIEmbeddings(
+            model="models/embedding-001",  # this is Google's text embedding model
+            google_api_key=get_settings().GOOGLE_API_KEY
         )
         
     async def create_embedding(self, text: str) -> List[float]:

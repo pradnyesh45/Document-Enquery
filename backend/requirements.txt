@@ -3,14 +3,16 @@ python-multipart
 sqlalchemy
 uvicorn
 pydantic
-unstructured[pdf]==0.10.30
+pydantic-settings
+unstructured[pdf]
 pillow-heif
 pdfminer.six
-python-jose[cryptography]  # for JWT tokens
-passlib[bcrypt]  # for password hashing
-alembic  # for database migrations
-psycopg2-binary  # for PostgreSQL support
+python-jose[cryptography]
+passlib[bcrypt]
+alembic
+psycopg2-binary
 pdf2image
-pi-heif==0.7.0
-python-pptx  # for PowerPoint file support
-langchain-community  # for embeddings and other community components
+pi-heif
+python-pptx
+langchain-community
+langchain-google-genai

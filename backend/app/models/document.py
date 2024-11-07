@@ -20,6 +20,9 @@ class Document(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now()) 
 
+    # Fix the relationship name to match DocumentChunk's back_populates
+    document_chunks = relationship("DocumentChunk", back_populates="document")
+
 class DocumentChunk(Base):
     __tablename__ = "document_chunks"
 
@@ -31,5 +34,5 @@ class DocumentChunk(Base):
     chunk_metadata = Column(JSON)  # Changed from 'metadata' to 'chunk_metadata'
     created_at = Column(DateTime, default=datetime.utcnow)
 
-    # Relationship
-    document = relationship("Document", back_populates="chunks")
+    # This stays the same
+    document = relationship("Document", back_populates="document_chunks")

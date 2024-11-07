@@ -12,10 +12,15 @@ class Settings(BaseSettings):
     
     # Database
     POSTGRES_SERVER: str = "localhost"
-    POSTGRES_USER: str = "postgres"
-    POSTGRES_PASSWORD: str = "password"
-    POSTGRES_DB: str = "doc_processor"
-    DATABASE_URL: str = f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_SERVER}/{POSTGRES_DB}"
+    POSTGRES_USER: str = "pradnyeshaglawe"  # Your actual username
+    POSTGRES_PASSWORD: str = ""  # Empty string since no password is needed
+    POSTGRES_DB: str = "document_enquery"
+    POSTGRES_PORT: str = "5432"
+    
+    @property
+    def DATABASE_URL(self) -> str:
+        # Simple URL without password since none is needed
+        return f"postgresql://{self.POSTGRES_USER}@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
     
     # AWS
     AWS_ACCESS_KEY_ID: str = "your-access-key"
@@ -25,10 +30,15 @@ class Settings(BaseSettings):
     # Redis
     REDIS_URL: str = "redis://localhost:6379"
     
+    # Google API Key
+    GOOGLE_API_KEY: str
+    
     class Config:
         case_sensitive = True
         env_file = ".env"
 
 @lru_cache
 def get_settings():
-    return Settings() 
+    return Settings()
+
+settings = Settings() 
