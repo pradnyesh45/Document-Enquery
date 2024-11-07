@@ -18,6 +18,8 @@ from app.api.dependencies.auth import get_current_user
 from uuid import UUID, uuid4
 from datetime import datetime
 from typing import List
+from app.schemas.query import QueryCreate, QueryResponse
+from app.services.rag import RAGService
 
 router = APIRouter()
 
@@ -179,3 +181,37 @@ async def whoami(
         "user_id": str(current_user.id),
         "email": current_user.email
     }
+
+@router.post("/query", response_model=QueryResponse)
+async def query_document(
+    query: QueryCreate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Query a document using RAG"""
+    # Get document
+    document_service = DocumentService(db)
+    document = await document_service.get_document(query.document_id, current_user.id)
+    
+    # Initialize RAG service
+    rag_service = RAGService()
+    
+    try:
+        # Process document
+        vectorstore = await rag_service.process_document(document.file_url)
+        
+        # Get answer
+        result = await rag_service.query_document(vectorstore, query.question)
+        
+        return QueryResponse(
+            document_id=document.id,
+            question=query.question,
+            answer=result["answer"],
+            confidence_score=result.get("confidence_score")
+        )
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error processing query: {str(e)}"
+        )
