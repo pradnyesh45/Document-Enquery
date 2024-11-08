@@ -2,6 +2,12 @@
 
 An intelligent document processing service built with FastAPI that extracts, analyzes, and stores document content using advanced NLP techniques and vector embeddings, and provides a chat interface for querying the documents.
 
+## 📹 Demo Video
+
+Check out our demo video to see the application in action:
+
+[Watch the Demo Video](https://drive.google.com/file/d/1gnkOJ9j8W6_lcu_uhzbffC8XiFEBQTh-/view?usp=sharing)
+
 ## 🚀 Features
 
 - **Document Processing**
