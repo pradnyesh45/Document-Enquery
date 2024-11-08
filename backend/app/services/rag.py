@@ -86,7 +86,11 @@ class RAGService:
         context = "\n\n".join([doc.page_content for doc in relevant_docs])
         
         # Create prompt
-        prompt = f"""Based on the following context, please answer the question. If the answer cannot be found in the context, say "I cannot find this information in the document."
+        prompt = f"""Based on the following context, please answer the question. You can:
+1. Directly quote from the context when available
+2. Make logical inferences ONLY if they are clearly supported by the context
+3. For questions about themes/morals, explain your reasoning using evidence from the text
+4. If information isn't in the context, say "I cannot find this information in the document."
 
 Context:
 {context}

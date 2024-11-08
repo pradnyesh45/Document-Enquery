@@ -7,7 +7,7 @@ uvicorn==0.27.1
 pydantic-settings==2.1.0
 psycopg2-binary==2.9.9
 unstructured==0.11.8
-unstructured-inference==0.7.23
+unstructured-inference==0.7.18
 pdfminer.six==20231228
 pdf2image==1.17.0
 python-magic==0.4.27
@@ -27,3 +27,4 @@ pandas==2.2.0
 numpy==1.26.3
 scikit-learn==1.4.0
 pypdf2==3.0.1
+unstructured[all-docs]==0.11.8

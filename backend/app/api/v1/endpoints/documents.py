@@ -20,6 +20,7 @@ from datetime import datetime
 from typing import List
 from app.schemas.query import QueryCreate, QueryResponse
 from app.services.rag import RAGService
+from app.services.document_processor import DocumentProcessor
 
 router = APIRouter()
 

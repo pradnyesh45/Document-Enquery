@@ -1,3 +1,4 @@
+from functools import lru_cache
 from pydantic_settings import BaseSettings
 from typing import Optional
 
@@ -44,4 +45,11 @@ class Settings(BaseSettings):
                 f"@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
             )
 
-settings = Settings() 
+@lru_cache()
+def get_settings() -> Settings:
+    return Settings()
+
+settings = get_settings()
+
+# Make sure to export both
+__all__ = ["settings", "get_settings"] 

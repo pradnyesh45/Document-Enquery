@@ -1,4 +1,4 @@
-from langchain.chat_models import ChatOpenAI
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.prompts import ChatPromptTemplate
 from langchain.chains import LLMChain
 from app.services.vector_store import VectorStore
@@ -16,10 +16,11 @@ class RAGAgent:
     def __init__(self, db: Session):
         self.db = db
         self.vector_store = VectorStore(db)
-        self.llm = ChatOpenAI(
+        self.llm = ChatGoogleGenerativeAI(
+            model="gemini-pro",
+            google_api_key=settings.GOOGLE_API_KEY,
             temperature=0,
-            model_name="gpt-4",
-            openai_api_key=settings.OPENAI_API_KEY
+            convert_system_message_to_human=True
         )
         
         self.prompt = ChatPromptTemplate.from_messages([
@@ -54,10 +55,13 @@ class RAGAgent:
             )
 
             # Format context from chunks
-            context = "\n\n".join([chunk["content"] for chunk in relevant_chunks])
+            context = await self._format_context(relevant_chunks)
 
-            # Generate response using LLM
-            response = await self.llm.generate_response(question, context)
+            # Generate response using LLM chain
+            response = await self.chain.arun(
+                context=context,
+                question=question
+            )
 
             return {
                 "answer": response,

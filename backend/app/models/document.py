@@ -5,6 +5,12 @@ import uuid
 from app.db.base import Base
 from sqlalchemy.orm import relationship
 from datetime import datetime
+from enum import Enum
+
+class DocumentStatus(str, Enum):
+    PROCESSING = "processing"
+    READY = "ready"
+    FAILED = "failed"
 
 class Document(Base):
     __tablename__ = "documents"
@@ -12,7 +18,7 @@ class Document(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     title = Column(String, nullable=False)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
-    status = Column(String, nullable=False, default="processing")
+    status = Column(String, default=DocumentStatus.PROCESSING)
     file_url = Column(String)  # Added this column
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, onupdate=datetime.utcnow)  # Added this column

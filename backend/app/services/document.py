@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from app.models.document import Document
+from app.models.document import Document, DocumentStatus
 from app.services.s3 import S3Service
 from fastapi import UploadFile, HTTPException
 from uuid import UUID, uuid4
@@ -24,7 +24,7 @@ class DocumentService:
             id=uuid4(),
             title=title,
             user_id=user_id,
-            status="processing",
+            status=DocumentStatus.PROCESSING,
             created_at=datetime.utcnow()
         )
         
@@ -41,8 +41,9 @@ class DocumentService:
                 file_name=file_key
             )
             
-            # Update document with file URL
+            # Update document with file URL and status
             document.file_url = file_url
+            document.status = DocumentStatus.READY
             
             # Save to database
             self.db.add(document)
@@ -53,6 +54,11 @@ class DocumentService:
             
         except Exception as e:
             self.db.rollback()
+            # Optionally update status to failed
+            if document.id:
+                document.status = DocumentStatus.FAILED
+                document.error_message = str(e)
+                self.db.commit()
             raise e
 
     async def get_document(self, document_id: UUID, user_id: UUID) -> Document:
